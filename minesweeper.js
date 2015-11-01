@@ -27,19 +27,25 @@
 //OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /**
- * The kind of hidden squares on the game board.
+ * The kind of hidden squares on the game board which are empty (i.e. don't
+ * contain a bomb).
  */
 var HIDDEN_EMPTY_SQUARE = 0;
 
 /**
+ * The kind of hidden squares on the game board which contain a bomb.
+ */
+var HIDDEN_BOMB_SQUARE = 1;
+
+/**
  * The kind of flagged (hidden) squares on the game board.
  */
-var HIDDEN_FLAGGED_SQUARE = 1;
+var HIDDEN_FLAGGED_SQUARE = 2;
 
 /**
  * The kind of uncovered (empty) squares on the game board
  */
-var UNCOVERED_EMPTY_SQUARE = 2;
+var UNCOVERED_EMPTY_SQUARE = 3;
 
 /**
  * Draw an image making up part of a square on the board using "game
@@ -87,7 +93,30 @@ function drawGameBoard(context, board) {
  */
 function uncoverSquare(board, x, y) {
 	var index = x + (y*board.width);
-	board.squares[index] = UNCOVERED_EMPTY_SQUARE;
+	switch(board.squares[index]) {
+	case HIDDEN_EMPTY_SQUARE:	
+		board.squares[index] = UNCOVERED_EMPTY_SQUARE;
+		// FIXME: RECURSIVELY EXPOSE SQUARES
+		break;
+	case HIDDEN_BOMB_SQUARE:
+		board.squares[index] = UNCOVERED_EMPTY_SQUARE;
+		break;
+	default:
+		// do nothing
+	}
+}
+
+/**
+ * Flag a square on the board. This will prevent this square from being
+ * accidentally uncovered.
+ * 
+ * @param board
+ * @param x
+ * @param y
+ */
+function flagSquare(board, x, y) {
+	var index = x + (y*board.width);
+	board.squares[index] = HIDDEN_FLAGGED_SQUARE;
 }
 
 /**
@@ -130,10 +159,16 @@ function initMinesweeperCanvas(canvasID,width,height,squareSize) {
 	// Draw the initial board
 	drawGameBoard(context,board);
 	// Setup the left- and right-click events.
-	canvas.addEventListener("click", function(event) {
+	canvas.addEventListener("mousedown", function(event) {
     	var x = Math.floor((event.pageX - canvas.offsetLeft) / squareSize);
-        var y = Math.floor((event.pageY - canvas.offsetTop) / squareSize);
-        uncoverSquare(board,x,y);
+        var y = Math.floor((event.pageY - canvas.offsetTop) / squareSize);        
+        if(event.button == 0) {
+        	// Handle left-click
+        	uncoverSquare(board,x,y);
+        } else {
+        	// Handle right-click
+        	flagSquare(board,x,y);        	
+        }
         drawGameBoard(context,board);
     },false);
 }
