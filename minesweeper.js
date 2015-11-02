@@ -43,14 +43,14 @@ var HIDDEN_BOMB_SQUARE = 1;
 var HIDDEN_FLAGGED_SQUARE = 2;
 
 /**
- * The kind of uncovered (empty) squares on the game board
- */
-var UNCOVERED_EMPTY_SQUARE = 3;
-
-/**
  * The kind of uncovered squares which contain bombs on the game board
  */
-var UNCOVERED_BOMB_SQUARE = 4;
+var UNCOVERED_BOMB_SQUARE = 3;
+
+/**
+ * The kind of uncovered (empty) squares on the game board
+ */
+var UNCOVERED_EMPTY_SQUARE = 4;
 
 /**
  * The kinds for uncovered squares with X adjacent bomb(s).
@@ -70,7 +70,7 @@ var UNCOVERED_EIGHT_SQUARE = 12;
 var IMAGE_IDS = [
     "hiddenSquare",
     "hiddenSquare",
-    "flaggedSquare",
+    "flaggedSquare",    
     "bombSquare",
     "uncoveredSquare",
     "uncoveredSquareOne",
@@ -145,9 +145,18 @@ function exposeSquare(board, x, y) {
 	var bombs = countSurroundingBombs(board,x,y);
 	var index = x + (y*board.width);
 	board.squares[index] = UNCOVERED_EMPTY_SQUARE+bombs;
-	exposeSurroundingSquares(board,x,y);
+	if(bombs == 0) {
+		exposeSurroundingSquares(board,x,y);
+	}
 }
 
+/**
+ * Recursively expose blank surrounding squares.
+ * 
+ * @param board
+ * @param x
+ * @param y
+ */
 function exposeSurroundingSquares(board, x, y) {
 	var minX = Math.max(x-1,0);
 	var maxX = Math.min(x+1,board.width-1);
@@ -165,6 +174,15 @@ function exposeSurroundingSquares(board, x, y) {
 	}
 }
 
+/**
+ * Count the number of bombs in the surrounding area. This is used to calculate
+ * the number reported to the user.
+ * 
+ * @param board
+ * @param x
+ * @param y
+ * @returns {Number}
+ */
 function countSurroundingBombs(board, x, y) {
 	var minX = Math.max(x-1,0);
 	var maxX = Math.min(x+1,board.width-1);
