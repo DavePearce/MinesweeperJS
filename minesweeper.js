@@ -48,22 +48,48 @@ var HIDDEN_FLAGGED_SQUARE = 2;
 var UNCOVERED_EMPTY_SQUARE = 3;
 
 /**
+ * The kind of uncovered squares which contain bombs on the game board
+ */
+var UNCOVERED_BOMB_SQUARE = 4;
+
+/**
+ * The kinds for uncovered squares with X adjacent bomb(s).
+ */
+var UNCOVERED_ONE_SQUARE = 5;
+var UNCOVERED_TWO_SQUARE = 6;
+var UNCOVERED_THREE_SQUARE = 7;
+var UNCOVERED_FOUR_SQUARE = 8;
+var UNCOVERED_FIVE_SQUARE = 9;
+var UNCOVERED_SIX_SQUARE = 10;
+var UNCOVERED_SEVEN_SQUARE = 11;
+var UNCOVERED_EIGHT_SQUARE = 12;
+
+/**
+ * The tag IDs associated with each kind of square 
+ */
+var IMAGE_IDS = [
+    "hiddenSquare",
+    "hiddenSquare",
+    "flaggedSquare",
+    "bombSquare",
+    "uncoveredSquare",
+    "uncoveredSquareOne",
+    "uncoveredSquareTwo",
+    "uncoveredSquareThree",
+    "uncoveredSquareFour",
+    "uncoveredSquareFive",
+    "uncoveredSquareSix",
+    "uncoveredSquareSeven",
+    "uncoveredSquareEight"    
+];
+
+/**
  * Draw an image making up part of a square on the board using "game
  * coordinates". That is, board positions rather than pixel positions. This
  * means x=1,y=1 is the square at board location 1,1.
  */
 function drawSquare(context, board, kind, x, y) {
-	var imageID;	
-	switch(kind) {
-	case HIDDEN_FLAGGED_SQUARE:
-		imageID = "flaggedSquare";
-		break;
-	case UNCOVERED_EMPTY_SQUARE:
-		imageID = "uncoveredSquare";
-		break;
-	default:
-		imageID = "hiddenSquare";
-	}
+	var imageID = IMAGE_IDS[kind];		
 	var img = document.getElementById(imageID);
 	x = x * board.squareSize;
 	y = y * board.squareSize;				
@@ -91,19 +117,71 @@ function drawGameBoard(context, board) {
  * @param x
  * @param y
  */
-function uncoverSquare(board, x, y) {
+function uncoverSquare(board, x, y) {	
 	var index = x + (y*board.width);
 	switch(board.squares[index]) {
-	case HIDDEN_EMPTY_SQUARE:	
-		board.squares[index] = UNCOVERED_EMPTY_SQUARE;
-		// FIXME: RECURSIVELY EXPOSE SQUARES
+	case HIDDEN_EMPTY_SQUARE:
+		exposeSquare(board, x, y);		
 		break;
 	case HIDDEN_BOMB_SQUARE:
-		board.squares[index] = UNCOVERED_EMPTY_SQUARE;
+		var index = x + (y*board.width);
+		board.squares[index] = UNCOVERED_BOMB_SQUARE;
 		break;
 	default:
 		// do nothing
 	}
+}
+
+/**
+ * Expose a given square and recursively expose any adjacent and empty squares.
+ * The expose process first calculates the number of bombs in the surrounding
+ * area.
+ * 
+ * @param board
+ * @param x
+ * @param y
+ */
+function exposeSquare(board, x, y) {
+	var bombs = countSurroundingBombs(board,x,y);
+	var index = x + (y*board.width);
+	board.squares[index] = UNCOVERED_EMPTY_SQUARE+bombs;
+	exposeSurroundingSquares(board,x,y);
+}
+
+function exposeSurroundingSquares(board, x, y) {
+	var minX = Math.max(x-1,0);
+	var maxX = Math.min(x+1,board.width-1);
+	var minY = Math.max(y-1,0);
+	var maxY = Math.min(y+1,board.height-1);
+	for(var i=minX;i<=maxX;i=i+1) {
+		for(var j=minY;j<=maxY;j=j+1) {
+			if(i != x || j != y) {
+				var index = i + (j*board.width);
+				if(board.squares[index] == HIDDEN_EMPTY_SQUARE) {
+					exposeSquare(board,i,j);
+				}
+			}
+		}	
+	}
+}
+
+function countSurroundingBombs(board, x, y) {
+	var minX = Math.max(x-1,0);
+	var maxX = Math.min(x+1,board.width-1);
+	var minY = Math.max(y-1,0);
+	var maxY = Math.min(y+1,board.height-1);
+	var bombs = 0;
+	for(var i=minX;i<=maxX;i=i+1) {
+		for(var j=minY;j<=maxY;j=j+1) {
+			if(i != x || j != y) {
+				var index = i + (j*board.width);
+				if(board.squares[index] == HIDDEN_BOMB_SQUARE) {
+					bombs = bombs + 1;
+				}
+			}
+		}	
+	}
+	return bombs;
 }
 
 /**
@@ -128,11 +206,20 @@ function flagSquare(board, x, y) {
  * @param height
  * @returns
  */
-function initGameBoard(width,height,squareSize) {
+function initGameBoard(nBombs, width,height,squareSize) {
 	var squares = [];
+	// First, create enough empty squares
 	for (var i = 0; i < (width*height); i = i + 1) {
 		squares.push(HIDDEN_EMPTY_SQUARE);
-	}		
+	}
+	// Second, add enough bombs!
+	for (var i = 0; i < squares.length; i = i + 1) {
+		var count = Math.random() * (squares.length-i);
+		if(count < nBombs) {
+			squares[i] = HIDDEN_BOMB_SQUARE;
+			nBombs = nBombs-1;
+		}
+	}
 	return {
 		squares: squares,		
 		width: width,   // Width of board (in squares)
@@ -151,11 +238,11 @@ function initGameBoard(width,height,squareSize) {
  * @param height
  * @param squareSize
  */
-function initMinesweeperCanvas(canvasID,width,height,squareSize) {
+function initMinesweeperCanvas(canvasID,nBombs,width,height,squareSize) {
 	var canvas = document.getElementById(canvasID);
 	var context = canvas.getContext("2d");
 	// Initialise the game board
-	var board = initGameBoard(width,height,squareSize);
+	var board = initGameBoard(nBombs,width,height,squareSize);
 	// Draw the initial board
 	drawGameBoard(context,board);
 	// Setup the left- and right-click events.
