@@ -38,31 +38,38 @@ var HIDDEN_EMPTY_SQUARE = 0;
 var HIDDEN_BOMB_SQUARE = 1;
 
 /**
- * The kind of flagged (hidden) squares on the game board.
+ * The kind of flagged (hidden) squares on the game board which don't contain a
+ * bomb.
  */
-var HIDDEN_FLAGGED_SQUARE = 2;
+var FLAGGED_EMPTY_SQUARE = 2;
+
+/**
+ * The kind of flagged (hidden) squares on the game board which do contain a
+ * bomb.
+ */
+var FLAGGED_BOMB_SQUARE = 3;
 
 /**
  * The kind of uncovered squares which contain bombs on the game board
  */
-var UNCOVERED_BOMB_SQUARE = 3;
+var UNCOVERED_BOMB_SQUARE = 4;
 
 /**
  * The kind of uncovered (empty) squares on the game board
  */
-var UNCOVERED_EMPTY_SQUARE = 4;
+var UNCOVERED_EMPTY_SQUARE = 5;
 
 /**
  * The kinds for uncovered squares with X adjacent bomb(s).
  */
-var UNCOVERED_ONE_SQUARE = 5;
-var UNCOVERED_TWO_SQUARE = 6;
-var UNCOVERED_THREE_SQUARE = 7;
-var UNCOVERED_FOUR_SQUARE = 8;
-var UNCOVERED_FIVE_SQUARE = 9;
-var UNCOVERED_SIX_SQUARE = 10;
-var UNCOVERED_SEVEN_SQUARE = 11;
-var UNCOVERED_EIGHT_SQUARE = 12;
+var UNCOVERED_ONE_SQUARE = 6;
+var UNCOVERED_TWO_SQUARE = 7;
+var UNCOVERED_THREE_SQUARE = 8;
+var UNCOVERED_FOUR_SQUARE = 9;
+var UNCOVERED_FIVE_SQUARE = 10;
+var UNCOVERED_SIX_SQUARE = 11;
+var UNCOVERED_SEVEN_SQUARE = 12;
+var UNCOVERED_EIGHT_SQUARE = 13;
 
 /**
  * The tag IDs associated with each kind of square 
@@ -70,7 +77,8 @@ var UNCOVERED_EIGHT_SQUARE = 12;
 var IMAGE_IDS = [
     "hiddenSquare",
     "hiddenSquare",
-    "flaggedSquare",    
+    "flaggedSquare",
+    "flaggedSquare",
     "bombSquare",
     "uncoveredSquare",
     "uncoveredSquareOne",
@@ -193,7 +201,9 @@ function countSurroundingBombs(board, x, y) {
 		for(var j=minY;j<=maxY;j=j+1) {
 			if(i != x || j != y) {
 				var index = i + (j*board.width);
-				if(board.squares[index] == HIDDEN_BOMB_SQUARE) {
+				switch(board.squares[index]) {
+				case HIDDEN_BOMB_SQUARE:
+				case FLAGGED_BOMB_SQUARE:						
 					bombs = bombs + 1;
 				}
 			}
@@ -210,9 +220,22 @@ function countSurroundingBombs(board, x, y) {
  * @param x
  * @param y
  */
-function flagSquare(board, x, y) {
+function toggleFlag(board, x, y) {
 	var index = x + (y*board.width);
-	board.squares[index] = HIDDEN_FLAGGED_SQUARE;
+	switch(board.squares[index]) {
+	case HIDDEN_BOMB_SQUARE:
+		board.squares[index] = FLAGGED_BOMB_SQUARE;
+		break;
+	case HIDDEN_EMPTY_SQUARE:
+		board.squares[index] = FLAGGED_EMPTY_SQUARE;
+		break;
+	case FLAGGED_BOMB_SQUARE:
+		board.squares[index] = HIDDEN_BOMB_SQUARE;
+		break;
+	case FLAGGED_EMPTY_SQUARE:
+		board.squares[index] = HIDDEN_EMPTY_SQUARE;
+		break;
+	}	
 }
 
 /**
@@ -272,8 +295,12 @@ function initMinesweeperCanvas(canvasID,nBombs,width,height,squareSize) {
         	uncoverSquare(board,x,y);
         } else {
         	// Handle right-click
-        	flagSquare(board,x,y);        	
+        	toggleFlag(board,x,y);        	
         }
         drawGameBoard(context,board);
     },false);
+	// Disable the context-menu, as this is annoying :)
+	canvas.oncontextmenu = function (e) {
+	    e.preventDefault();
+	};	
 }
