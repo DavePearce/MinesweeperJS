@@ -203,7 +203,8 @@ function countSurroundingBombs(board, x, y) {
 				var index = i + (j*board.width);
 				switch(board.squares[index]) {
 				case HIDDEN_BOMB_SQUARE:
-				case FLAGGED_BOMB_SQUARE:						
+				case FLAGGED_BOMB_SQUARE:
+				case UNCOVERED_BOMB_SQUARE:						
 					bombs = bombs + 1;
 				}
 			}
