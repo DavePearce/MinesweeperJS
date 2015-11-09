@@ -3,24 +3,32 @@
 <script src="minesweeper.js"></script>
 <body onload="initMinesweeperCanvas('myCanvas',20,10,10,24);">
 
-<canvas id="myCanvas" width="240" height="240" style="border:1px solid #000000;">
+	<canvas id="myCanvas" width="240" height="240"
+		style="border: 1px solid #000000;">
 Your browser does not support the HTML5 canvas tag.
 </canvas>
-<img id="hiddenSquare" src="images/HiddenSquare.png"/>
-<img id="flaggedSquare" src="images/HiddenSquareFlagged.png"/>
-<img id="bombSquare" src="images/ExposedBombSquare.png"/>
-<img id="uncoveredSquare" src="images/ExposedBlankSquare.png"/>
-<img id="uncoveredSquareOne" src="images/ExposedSquare1.png"/>
-<img id="uncoveredSquareTwo" src="images/ExposedSquare2.png"/>
-<img id="uncoveredSquareThree" src="images/ExposedSquare3.png"/>
-<img id="uncoveredSquareFour" src="images/ExposedSquare4.png"/>
-<img id="uncoveredSquareFive" src="images/ExposedSquare5.png"/>
-<img id="uncoveredSquareSix" src="images/ExposedSquare6.png"/>
-<img id="uncoveredSquareSeven" src="images/ExposedSquare7.png"/>
-<img id="uncoveredSquareEight" src="images/ExposedSquare8.png"/>
-<script>
-</script>
+	<img id="hiddenSquare" src="images/HiddenSquare.png" />
+	<img id="flaggedSquare" src="images/HiddenSquareFlagged.png" />
+	<img id="bombSquare" src="images/ExposedBombSquare.png" />
+	<img id="uncoveredSquare" src="images/ExposedBlankSquare.png" />
+	<img id="uncoveredSquareOne" src="images/ExposedSquare1.png" />
+	<img id="uncoveredSquareTwo" src="images/ExposedSquare2.png" />
+	<img id="uncoveredSquareThree" src="images/ExposedSquare3.png" />
+	<img id="uncoveredSquareFour" src="images/ExposedSquare4.png" />
+	<img id="uncoveredSquareFive" src="images/ExposedSquare5.png" />
+	<img id="uncoveredSquareSix" src="images/ExposedSquare6.png" />
+	<img id="uncoveredSquareSeven" src="images/ExposedSquare7.png" />
+	<img id="uncoveredSquareEight" src="images/ExposedSquare8.png" />
 
+	<form>
+		<label for="width">Width</label> <input type="number" name="width"
+			id="width" value="10"><br /> <label for="height">Height</label>
+		<input type="number" name="width" id="height" value="10"><br />
+		<label for="bombs">Bombs</label> <input type="number" name="bombs"
+			id="bombs" value="20"><br /> <input type="button"
+			value="New Game"
+			onclick="initMinesweeperCanvas('myCanvas',document.getElementById('bombs').value,document.getElementById('width').value,document.getElementById('height').value,24);">
+	</form>
 
 </body>
 </html>
