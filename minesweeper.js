@@ -271,24 +271,16 @@ function initGameBoard(nBombs, width,height,squareSize) {
 }
 
 /**
- * Initialise a given canvas element to represent the game board. This includes
- * attaching an appropriate event listener to intercept mouse clicks on the
- * board, etc.
+ * Create an event handler for a given canvas and board. This responds to either
+ * a left- or right- mouse click.
  * 
- * @param canvasID
- * @param width
- * @param height
- * @param squareSize
+ * @param canvas
+ * @param board
+ * @returns {Function}
  */
-function initMinesweeperCanvas(canvasID,nBombs,width,height,squareSize) {
-	var canvas = document.getElementById(canvasID);
+function createEventListener(canvas, board, squareSize) {
 	var context = canvas.getContext("2d");
-	// Initialise the game board
-	var board = initGameBoard(nBombs,width,height,squareSize);
-	// Draw the initial board
-	drawGameBoard(context,board);
-	// Setup the left- and right-click events.
-	canvas.addEventListener("mousedown", function(event) {
+	return function(event) {
     	var x = Math.floor((event.pageX - canvas.offsetLeft) / squareSize);
         var y = Math.floor((event.pageY - canvas.offsetTop) / squareSize);        
         if(event.button == 0) {
@@ -299,7 +291,42 @@ function initMinesweeperCanvas(canvasID,nBombs,width,height,squareSize) {
         	toggleFlag(board,x,y);        	
         }
         drawGameBoard(context,board);
-    },false);
+    }
+}
+
+/**
+ * Global event handler --- yuk! But, I'm not sure how to avoid this ?
+ */
+var eventListener;
+
+/**
+ * Initialise a given canvas element to represent the game board. This includes
+ * attaching an appropriate event listener to intercept mouse clicks on the
+ * board, etc.
+ * 
+ * @param canvasID
+ * @param width
+ * @param height
+ * @param squareSize
+ */
+function initMinesweeperCanvas(canvasID,nBombs,width,height,squareSize) {
+	var canvas = document.getElementById(canvasID);	
+	var context = canvas.getContext("2d");
+	// Set the required width and height
+	canvas.width = width * squareSize;
+	canvas.height = height * squareSize;
+	// Initialise the game board
+	var board = initGameBoard(nBombs,width,height,squareSize);
+	// Draw the initial board
+	drawGameBoard(context,board);
+	// Clear existing event listener
+	if(eventListener) {
+		canvas.removeEventListener('mousedown', eventListener, false);
+	}	
+	// FIXME: get rid of global variable
+	eventListener = createEventListener(canvas, board, squareSize);
+	// Setup left- and right-click event listener.
+	canvas.addEventListener("mousedown", eventListener, false);
 	// Disable the context-menu, as this is annoying :)
 	canvas.oncontextmenu = function (e) {
 	    e.preventDefault();
